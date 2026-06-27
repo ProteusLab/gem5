@@ -103,6 +103,10 @@ class DependencyGraph
     void clearInst(RegIndex idx)
     { dependGraph[idx].inst = NULL; }
 
+    /** Returns the producing instruction of a given register. */
+    DynInstPtr getInst(RegIndex idx) const
+    { return dependGraph[idx].inst; }
+
     /** Removes an instruction from a single linked list. */
     void remove(RegIndex idx, const DynInstPtr &inst_to_remove);
 

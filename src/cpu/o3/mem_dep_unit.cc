@@ -37,6 +37,7 @@
 #include "cpu/o3/limits.hh"
 #include "cpu/o3/mem_dep_unit.hh"
 #include "debug/MemDepUnit.hh"
+#include "debug/UscopeView.hh"
 #include "params/BaseO3CPU.hh"
 
 namespace gem5
@@ -274,6 +275,18 @@ MemDepUnit::insert(const DynInstPtr &inst)
 
         inst_entry->memDeps = store_entries.size();
 
+#if TRACING_ON
+        if (debug::UscopeView) {
+            std::string deps;
+            for (auto se : store_entries) {
+                if (!deps.empty()) deps += ",";
+                deps += std::to_string(se->inst->seqNum);
+            }
+            DPRINTFR(UscopeView, "uScopeView:memdeps:%i:%llu:%s\n",
+                     inst->cpu->cpuId(), inst->seqNum, deps);
+        }
+#endif
+
         if (inst->isLoad()) {
             ++stats.conflictingLoads;
         } else {
@@ -283,6 +296,25 @@ MemDepUnit::insert(const DynInstPtr &inst)
 
     // for load-acquire store-release that could also be a barrier
     insertBarrierSN(inst);
+
+#if TRACING_ON
+    if (debug::UscopeView) {
+        if (inst->isLoad()) {
+            std::string deps;
+            for (auto ri = instList[tid].rbegin();
+                 ri != instList[tid].rend(); ++ri) {
+                if ((*ri)->isStore() && (*ri)->seqNum != inst->seqNum) {
+                    if (!deps.empty()) deps += ",";
+                    deps += std::to_string((*ri)->seqNum);
+                }
+            }
+            if (!deps.empty()) {
+                DPRINTFR(UscopeView, "uScopeView:memdeps:%i:%llu:%s\n",
+                         inst->cpu->cpuId(), inst->seqNum, deps);
+            }
+        }
+    }
+#endif
 
     if (inst->isStore() || inst->isAtomic()) {
         DPRINTF(MemDepUnit, "Inserting store/atomic PC %s [sn:%lli].\n",

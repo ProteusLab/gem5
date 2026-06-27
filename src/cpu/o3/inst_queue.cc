@@ -42,12 +42,14 @@
 #include "cpu/o3/inst_queue.hh"
 
 #include <limits>
+#include <string>
 #include <vector>
 
 #include "base/logging.hh"
 #include "cpu/o3/dyn_inst.hh"
 #include "cpu/o3/fu_pool.hh"
 #include "cpu/o3/limits.hh"
+#include "debug/UscopeView.hh"
 #include "debug/IQ.hh"
 #include "enums/OpClass.hh"
 #include "params/BaseO3CPU.hh"
@@ -694,6 +696,31 @@ InstructionQueue::insert(const DynInstPtr &new_inst)
     // Have this instruction set itself as the producer of its destination
     // register(s).
     addToProducers(new_inst);
+
+#if TRACING_ON
+    if (debug::UscopeView) {
+        std::string deps;
+        int8_t total_src_regs = new_inst->numSrcRegs();
+        for (int src_reg_idx = 0;
+             src_reg_idx < total_src_regs;
+             src_reg_idx++)
+        {
+            PhysRegIdPtr src_reg = new_inst->renamedSrcIdx(src_reg_idx);
+            if (src_reg->isFixedMapping()) {
+                continue;
+            }
+            DynInstPtr producer = dependGraph.getInst(src_reg->flatIndex());
+            if (producer) {
+                if (!deps.empty()) deps += ",";
+                deps += std::to_string(producer->seqNum);
+            }
+        }
+        if (!deps.empty()) {
+            DPRINTFR(UscopeView, "uScopeView:deps:%d:%llu:%s\n",
+                     new_inst->cpu->cpuId(), new_inst->seqNum, deps);
+        }
+    }
+#endif
 
     if (new_inst->isMemRef()) {
         memDepUnit[new_inst->threadNumber].insert(new_inst);

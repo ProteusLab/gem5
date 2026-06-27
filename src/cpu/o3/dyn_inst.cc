@@ -46,6 +46,7 @@
 #include "debug/DynInst.hh"
 #include "debug/IQ.hh"
 #include "debug/O3PipeView.hh"
+#include "debug/UscopeView.hh"
 
 namespace gem5
 {
@@ -248,6 +249,11 @@ DynInst::~DynInst()
             DPRINTFR(O3PipeView, "O3PipeView:retire:%llu:store:%llu\n",
                     val, valS);
         }
+    }
+    if (debug::UscopeView) {
+        DPRINTFR(UscopeView, "uScopeView:usinfo:%d:%llu:%s\n",
+                 cpu->cpuId(), seqNum,
+                 enums::OpClassStrings[staticInst->opClass()]);
     }
 #endif
 
