@@ -1,0 +1,19 @@
+Protea dependency
+=================
+
+Protea is an Architecture Description Language (ADL) based on Ruby
+for defining and simulating CPU architectures.
+
+Repository: https://github.com/ProteusLab/Protea
+Branch:      gem5-integration
+
+To clone:
+    git clone --branch gem5-integration --depth 1 \
+        https://github.com/ProteusLab/Protea.git ext/protea/Protea
+
+Protea bundles its own copy of the LIRA Ruby library in lib/lira/.
+If you also have ext/lira/LIRA/ cloned, you can symlink Protea's
+bundled copy to use the canonical version:
+
+    rm -rf ext/protea/Protea/lib/lira
+    ln -s ../../lira/LIRA/ruby/lira ext/protea/Protea/lib/lira

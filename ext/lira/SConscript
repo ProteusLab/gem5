@@ -1,0 +1,47 @@
+# -*- mode:python -*-
+
+# Copyright (c) 2024 ProteusLab
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met: redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer;
+# redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution;
+# neither the name of the copyright holders nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+import os
+
+Import('env')
+
+lira_root = Dir('.').srcnode().abspath
+lira_repo = os.path.join(lira_root, 'LIRA')
+
+if not os.path.exists(os.path.join(lira_repo, 'CMakeLists.txt')):
+    env['HAVE_LIRA'] = False
+    print("LIRA: not found (clone into ext/lira/LIRA/)")
+    Return()
+
+env['HAVE_LIRA'] = True
+print(f"LIRA: found at {lira_repo}")
+
+env['LIRA_ROOT'] = lira_repo
+env['LIRA_RUBY_DIR'] = os.path.join(lira_repo, 'ruby', 'lira')
+env['LIRA_PYTHON_DIR'] = os.path.join(lira_repo, 'python', 'lira')
+env['LIRA_RUST_DIR'] = os.path.join(lira_repo, 'rust', 'lira')
