@@ -1,0 +1,53 @@
+// Protea DSL instruction class declaration template.
+
+def template RiscvProteaDeclare {{
+    class  %(class_name)s : public %(base_class)s {
+    private:
+        %(memb_decls)s
+
+    public:
+        %(class_name)s(ExtMachInst mach_inst);
+        std::string generateDisassembly(Addr pc, const loader::SymbolTable* symtab) const override;
+        %(meth_decls)s
+    };
+}};
+
+def template RiscvProteaConstructor {{
+     %(class_name)s:: %(class_name)s(ExtMachInst mach_inst) : %(base_class)s("%(mnemonic)s", mach_inst, %(op_class)s) {
+        setRegIdxArrays(
+            reinterpret_cast<RegIdArrayPtr>(
+                &std::remove_pointer_t<decltype(this)>::srcRegIdxArr),
+            reinterpret_cast<RegIdArrayPtr>(
+                &std::remove_pointer_t<decltype(this)>::destRegIdxArr));
+        //
+        %(memb_defs)s // operands, flags
+    }
+}};
+
+def template RiscvProteaExecute {{
+    std::string %(class_name)s::generateDisassembly(Addr pc, const loader::SymbolTable* symtab) const {
+        std::stringstream ss;
+        ss << mnemonic;
+        return ss.str();
+    }
+
+    %(meth_defs)s
+}};
+
+def template RiscvProteaDecode {{
+    return new %(class_name)s(machInst);
+}};
+
+def format ProteaInst(op_class, memb_decls, memb_defs, meth_decls, meth_defs, base_class = 'RiscvStaticInst', *flags) {{
+    iop = InstObjParams(name, Name, base_class, { 'op_class' : op_class,
+                                                  'mnemonic' : Name,
+                                                  'memb_decls' : memb_decls,
+                                                  'memb_defs' : memb_defs,
+                                                  'meth_decls' : meth_decls,
+                                                  'meth_defs' : meth_defs }, flags)
+
+    header_output = RiscvProteaDeclare.subst(iop)
+    decoder_output = RiscvProteaConstructor.subst(iop)
+    decode_block = RiscvProteaDecode.subst(iop)
+    exec_output = RiscvProteaExecute.subst(iop)
+}};
