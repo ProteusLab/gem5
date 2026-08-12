@@ -1,0 +1,140 @@
+// -*- mode:c++ -*-
+
+// Protea DSL instruction class declaration template.
+// Reference only
+
+decode ProteaDecoderCall default Unknown::unknown() {
+    format ProteaInst {
+    Opcode::kADD :
+        ADD(
+        op_class = {{IntAluOp}},
+        memb_decls = {{
+            uint8_t rd{0};
+            uint8_t rs1{0};
+            uint8_t rs2{0};
+
+            RegId srcRegIdxArr[2];
+            RegId destRegIdxArr[1];
+        }},
+        memb_defs = {{
+            flags[IsInteger] = true;
+
+            rd |= machInst<11:7>;
+            rs1 |= machInst<19:15>;
+            rs2 |= machInst<24:20>;
+
+            setSrcRegIdx(0, getXRegister(intRegClass, rs1));
+            _numSrcRegs++;
+
+            setSrcRegIdx(1, getXRegister(intRegClass, rs2));
+            _numSrcRegs++;
+
+            setDestRegIdx(0, getXRegister(intRegClass, rd));
+            _numDestRegs++;
+        }},
+        meth_decls = {{
+            Fault execute(ExecContext* xc, trace::InstRecord* traceData) const override;
+        }},
+        meth_defs = {{
+            Fault ADD::execute(ExecContext* xc, trace::InstRecord* traceData) const
+            {
+                uint32_t _t1{0};
+                _t1 = xc->getRegOperand(this, 0);
+
+                uint32_t _t2{0};
+                _t2 = xc->getRegOperand(this, 1);
+
+                uint32_t _t3{0};
+                _t3 = add_32(_t1, _t2);
+
+                xc->setRegOperand(this, 0, _t3);
+
+                if (traceData) { traceData->setData(intRegClass, _t3); }
+
+                return NoFault;
+            }
+        }});
+
+    Opcode::kLW :
+        LW(
+        op_class = {{MemReadOp}},
+        memb_decls = {{
+            Request::Flags memAccessFlags{0};
+
+            uint8_t rd{0};
+            uint8_t rs1{0};
+            uint16_t imm{0};
+            uint64_t imm_map{0};
+            RegId srcRegIdxArr[1];
+            RegId destRegIdxArr[1];
+        }},
+        memb_defs = {{
+            flags[IsLoad] = true;
+            flags[IsInteger] = true;
+
+            rd |= machInst<11:7>;
+            rs1 |= machInst<19:15>;
+            imm |= machInst<21:10> << 0;
+
+            imm = machInst<31:20>;
+            int32_t _tmp299;
+            _tmp299 = (static_cast<int32_t>(imm) << 20) >> 20;
+            imm_map = _tmp299;
+
+            setDestRegIdx(0, getXRegister(intRegClass, rd));
+            _numDestRegs++;
+
+            setSrcRegIdx(0, getXRegister(intRegClass, rs1));
+            _numSrcRegs++;
+        }},
+        meth_decls = {{
+            Fault execute(ExecContext* xc, trace::InstRecord* traceData) const override;
+            Fault initiateAcc(ExecContext *, trace::InstRecord *) const override;
+            Fault completeAcc(PacketPtr, ExecContext *, trace::InstRecord *) const override;
+        }},
+        meth_defs = {{
+            Fault LW::execute(ExecContext* xc, trace::InstRecord* traceData) const
+            {
+                uint64_t addr{0};
+                addr = xc->getRegOperand(this, 0);
+
+                uint64_t T5_laddr{0};
+                T5_laddr = add_64(addr, imm_map);
+                uint64_t data{0};
+                readMemAtomicLE(xc, traceData, T5_laddr, data, 0);
+
+                xc->setRegOperand(this, 0, data);
+
+                if (traceData) { traceData->setData(intRegClass, data); }
+
+                return NoFault;
+            }
+
+            // for Timing/Out-of-Order cpu-type execution
+            Fault LW::initiateAcc(ExecContext *xc, trace::InstRecord *traceData) const
+            {
+                uint64_t addr{0};
+                addr = xc->getRegOperand(this, 0);
+
+                uint64_t T5_laddr{0};
+                T5_laddr = add_64(addr, imm_map);
+                uint64_t data{0};
+
+                return initiateMemRead(xc, traceData, T5_laddr, data, 0);
+            }
+
+            // for Timing/Out-of-Order cpu-type execution
+            Fault LW::completeAcc(PacketPtr pkt, ExecContext *xc, trace::InstRecord *traceData) const
+            {
+                uint64_t data{0};
+                getMemLE(pkt, data, traceData);
+
+                xc->setRegOperand(this, 0, data);
+
+                if (traceData) { traceData->setData(intRegClass, data); }
+
+                return NoFault;
+            }
+        }});
+    }
+}
