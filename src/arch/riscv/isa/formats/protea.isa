@@ -1,3 +1,4 @@
+// -*- mode:c++ -*-
 // Protea DSL instruction class declaration template.
 
 def template RiscvProteaDeclare {{
