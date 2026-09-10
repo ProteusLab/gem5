@@ -147,6 +147,9 @@ AddOption('--gprof', action='store_true',
 AddOption('--pprof', action='store_true',
           help='Enable support for the pprof profiler')
 AddOption('--debug-fission', action='store_true', help='Enable debug fission')
+AddOption('--enable-protea', action='store_true', default=False,
+          help='Use the Protea-generated ISA description for ARM instead of '
+               'the built-in one')
 # Default to --no-duplicate-sources, but keep --duplicate-sources to opt-out
 # of this new build behaviour in case it introduces regressions. We could use
 # action=argparse.BooleanOptionalAction here once Python 3.9 is required.
