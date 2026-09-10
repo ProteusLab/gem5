@@ -5,8 +5,8 @@ LIRA is a framework that provides a data-flow Intermediate Representation
 with Ruby, Python, and Rust bindings.
 
 Repository: https://github.com/ProteusLab/LIRA
-Tag:        v0.1.0
+Branch:     master
 
 To clone:
-    git clone --branch v0.1.0 --depth 1 \
+    git clone --branch master --depth 1 \
         https://github.com/ProteusLab/LIRA.git ext/lira/LIRA
